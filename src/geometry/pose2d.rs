@@ -1,16 +1,24 @@
-use super::rotation2d::Rotation2D;
-use super::translation2d::Translation2D;
-use super::transform2d::Transform2D;
-use std::ops::Mul;
+use crate::geometry::{
+    rotation2d::Rotation2D,
+    transform2d::Transform2D,
+    translation2d::Translation2D
+};
+use std::ops::{Mul, MulAssign};
 
+/// A 2D pose, consisting of a translation and a rotation.
 
-#[derive(Clone, Copy)]
+/// It is the main representation of a global position and orientation.
+/// It can be transformed by a Transform2D to get a new Pose2D, 
+/// or can be used to get the relative Transform2D to another Pose2D.
+
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Pose2D {
     translation: Translation2D,
     rotation: Rotation2D,
 }
 
 impl Pose2D {
+    /// Creates a new Pose2D with the zero values for translation and rotation.
     pub fn zero() -> Self {
         Self {
             translation: Translation2D::zero(),
@@ -18,29 +26,38 @@ impl Pose2D {
         }
     }
 
+    /// Creates a new Pose2D with the given translation and rotation.
     pub fn new(translation: Translation2D, rotation: Rotation2D) -> Self {
         Self {
             translation,
             rotation,
         }
     }
+
+    /// Getter for the x coordinate of the translation.
     pub fn x(&self) -> f64 {
         self.translation.x()
     }
 
+    /// Getter for the y coordinate of the translation.
     pub fn y(&self) -> f64 {
         self.translation.y()
     }
 
-    pub fn rotation(&self) -> Rotation2D {
-        self.rotation
-    }
-
+    /// Getter for the translation of the pose.
     pub fn translation(&self) -> Translation2D {
         self.translation
     }
 
+    /// Getter for the rotation of the pose.
+    pub fn rotation(&self) -> Rotation2D {
+        self.rotation
+    }
+
+    /// Transforms the pose by the given Transform2D, returning a new Pose2D.
     pub fn transform_by(&self, t: Transform2D) -> Pose2D {
+
+        // Rotates the translation by the current rotation to get the global delta translation.
         let global_delta: Translation2D = self.rotation * t.translation();
 
         let new_translation = self.translation + global_delta;
@@ -51,18 +68,30 @@ impl Pose2D {
         }
     }
 
+    /// Returns the Transform2D that transforms the other pose to this pose.
+    /// Order matters, as this is not commutative. The returned Transform2D is the transform that, when applied to the other pose, will result in this pose.
     pub fn relative_to(&self, other: Pose2D) -> Transform2D {
+
+        // Gets the translation difference between the two poses in world coordinates.
         let mut translation = self.translation - other.translation;
+
+        // rotates the translation difference into the other pose's frame, converting it from world coordinates to the other pose's local coordinates.
         translation = other.rotation().inverse() * translation;
+
+        // Gets the rotation difference between the two poses. rotation.inverse() * rotation is essentially the same as (-rotation) + rotation.
         let rotation = other.rotation().inverse() * self.rotation();
 
         Transform2D::new(translation, rotation)
     }
 
+    /// Returns the distance between this pose and another pose, based on their translations.
     pub fn distance(&self, other: Pose2D) -> f64 {
         self.translation.distance(other.translation)
     }
 
+    /// Returns the rotation from this pose to another pose, based on their translations.
+    /// NOTE: This is different than the rotation difference between the two poses.
+    /// This is the angle required to point from this pose's translation to the other pose's translation, in world coordinates.
     pub fn rotation_to(&self, other: Pose2D) -> Rotation2D {
         let delta = other.translation - self.translation;
         Rotation2D::from_radians(
@@ -70,6 +99,8 @@ impl Pose2D {
         )
     }
 
+    /// Returns the inverse of the transform.
+    /// This is the transform that, when applied to this pose, will result in the identity pose (zero translation and zero rotation).
     pub fn inverse(&self) -> Transform2D {
         let inverse_rot = self.rotation.inverse();
         let inverse_translation: Translation2D = inverse_rot*(-self.translation);
@@ -81,6 +112,8 @@ impl Pose2D {
     }
 }
 
+/// Implementations of the multiplication operator for Pose2D and Transform2D.
+/// This allows for the use of the * operator to act as a shorthand for the transform_by method.
 impl Mul<Transform2D> for Pose2D {
     type Output = Pose2D;
 
@@ -89,6 +122,17 @@ impl Mul<Transform2D> for Pose2D {
     }
 }
 
+/// Implementations of the multiplication assignment operator for Pose2D and Transform2D.
+/// This allows for the use of the *= operator to act as a shorthand for the transform_by method, modifying the original Pose2D in place.
+impl MulAssign<Transform2D> for Pose2D {
+    fn mul_assign(&mut self, rhs: Transform2D) {
+        *self = self.transform_by(rhs);
+    }
+}
+
+
+
+/// Unit tests for the Pose2D struct and its methods.
 #[cfg(test)]
 mod tests {
     use super::*;
