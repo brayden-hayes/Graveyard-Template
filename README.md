@@ -1,158 +1,177 @@
-# vexide Template
+# Vexide Odometry & Localization Template
 
-[![Build status](https://github.com/vexide/vexide-template/actions/workflows/rust.yml/badge.svg)](https://github.com/vexide/vexide-template/actions/workflows/rust.yml)
+A clean, hardware-independent foundation for odometry and localization on VEX V5 robots using [Vexide](https://vexide.dev/).
 
-> Ready-to-use template for developing VEX V5 robots in Rust.
+This template is intentionally designed as a **scalable starting point** for teams that want to move beyond basic dead-reckoning. It emphasizes separation of concerns, testability on a normal PC, and a clear path toward more advanced filters (EKF, particle filter, sensor fusion, etc.).
 
-Seasoned vexide user? Delete README.md and update Cargo.toml as needed.
+---
 
-## Table of Contents
+## Design Goals
 
-- [vexide Template](#vexide-template)
-  - [Table of Contents](#table-of-contents)
-  - [Using This Template](#using-this-template)
-  - [Getting Started (Windows)](#getting-started-windows)
-  - [Getting Started (macOS)](#getting-started-macos)
-  - [Getting Started (NixOS)](#getting-started-nixos)
-  - [Getting Started (Debian/Ubuntu Linux)](#getting-started-debianubuntu-linux)
-  - [Getting Started (Fedora Linux)](#getting-started-fedora-linux)
-  - [Learn](#learn)
-  - [Development](#development)
-    - [Compiling and uploading to a VEX V5 robot](#compiling-and-uploading-to-a-vex-v5-robot)
-    - [Viewing program output](#viewing-program-output)
+- **Hardware independent** – Core math and localization logic have zero dependency on VEX hardware.
+- **Testable on a PC** – Run and debug the entire pipeline on your computer with fake sensors before deploying to the brain.
+- **Separation of concerns** – Geometry, odometry sources, robot state, timing, and visualization are cleanly separated.
+- **Scalable** – Start with simple dead-reckoning and later drop in an EKF, particle filter, GPS, distance sensors, or vision without rewriting the foundation.
+- **Cross-platform** – Same codebase runs on the V5 brain (Vexide) and on the host (std) via Cargo features.
 
-## Using This Template
+---
 
-To create a project using this template, click the "[Use this template](https://github.com/new?template_name=vexide-template&template_owner=vexide)" button in the upper right corner of the GitHub repository. Choose an appropriate name and clone the new repository using Git. Finally, update the package name in `Cargo.toml`:
+## Features
 
-```toml
-[package]
-name = "my-vex-robot"
-version = "0.1.0"
-edition = "2024"
+- Full SE(2) geometry library (`Pose2D`, `Transform2D`, `Twist2D`, `Rotation2D`, `Translation2D`)
+- Pluggable `Odometry` trait – swap real sensors or simulated sources with no changes to the rest of the system
+- Background localization loop (Vexide task on the brain, `std::thread` on the host)
+- Shared robot state protected by mutexes
+- Cross-platform monotonic clock abstraction
+- Simple trajectory visualizer (SVG) for host-side testing
+- Feature-flagged builds (`vex` vs `host`)
+
+---
+
+## Project Structure (typical)
+
+```
+src/
+├── geometry/          # Pure SE(2) math (no hardware, no I/O)
+│   ├── pose2d.rs
+│   ├── transform2d.rs
+│   ├── twist2d.rs
+│   ├── rotation2d.rs
+│   └── translation2d.rs
+├── robot/
+│   ├── robot.rs       # Robot struct + Compete impl + localization loop
+│   └── odometry.rs    # Odometry trait + example implementations
+├── utils/
+│   ├── clock.rs       # Cross-platform monotonic clock
+│   └── visualizer.rs  # SVG trajectory output for testing
+└── main.rs
 ```
 
-You can also configure your program slot and upload behavior in `Cargo.toml`:
+---
 
-```toml
-[package.metadata.v5]
-slot = 1
-icon = "cool-x"
-compress = true
+## Quick Start
+
+### Running on the V5 Brain
+
+```bash
+cargo v5 run
 ```
 
-> See our [Building & Uploading tutorial](https://vexide.dev/docs/building-uploading/) for more information.
+Uses the default `vex` feature. Use your normal Vexide workflow if it differs.
 
-## Getting Started (Windows)
+### Testing on a PC
 
-Follow the instructions [here](https://www.rust-lang.org/tools/install) to install `rustup`.
-
-Run the following commands in Powershell to set up your PC for development on Windows.
-
-- Switch to the `nightly` rust toolchain and add the `rust-src` component:
-
-  ```console
-  rustup default nightly
-  rustup component add rust-src
-  ```
-
-- Install cargo-v5:
-
-  ```console
-  cargo install cargo-v5
-  ```
-
-## Getting Started (macOS)
-
-Follow the instructions [here](https://www.rust-lang.org/tools/install) to install `rustup` on your Mac.
-
-Run the following commands in a terminal window to setup development with vexide.
-
-- Open a terminal and configure `rustup` to build for the V5's platform target:
-
-- Switch to the `nightly` rust toolchain and add the `rust-src` component:
-
-  ```console
-  rustup default nightly
-  rustup component add rust-src
-  ```
-
-- Install cargo-v5:
-
-  ```console
-  cargo install cargo-v5
-  ```
-
-## Getting Started (NixOS)
-
-The Nix flake includes a devshell with every tool you need for building and uploading vexide projects.
-
-There is a `.envrc` file for Nix + Direnv users.
-
-## Getting Started (Debian/Ubuntu Linux)
-
-Follow the instructions [here](https://www.rust-lang.org/tools/install) to install `rustup`. You may also prefer to install it from your system package manager or by other means. Instructions on that can be found [here](https://rust-lang.github.io/rustup/installation/other.html).
-
-Run the following terminal commands to set up development on Debian or Ubuntu.
-
-- Switch to the `nightly` rust toolchain and add the `rust-src` component:
-
-  ```console
-  rustup default nightly
-  rustup component add rust-src
-  ```
-
-- Install cargo-v5:
-
-  ```console
-  cargo install cargo-v5
-  ```
-
-## Getting Started (Fedora Linux)
-
-Run the following terminal commands to set up your PC for development on Fedora.
-
-- Install Rust:
-
-  ```console
-  sudo dnf install rustup
-  rustup-init -y --default-toolchain nightly
-  ```
-
-- Close and reopen the terminal, and finish installing vexide:
-
-  ```console
-  rustup component add rust-src
-  cargo install cargo-v5
-  ```
-
-## Learn
-
-[Check out the documentation](https://vexide.dev/docs/) on the official vexide website for walkthrough-style guides and other helpful learning resources!
-
-An [API reference](https://docs.rs/vexide) is also provided by docs.rs.
-
-## Development
-
-### Compiling and uploading to a VEX V5 robot
-
-Use the cargo-v5 terminal utility to build and upload this vexide project.
-
-```console
-cargo v5 build
+```bash
+cargo test --features host --no-default-features
 ```
 
-Use a USB cable to connect to your robot brain or to your controller before using the `upload` subcommand to build and upload the project. Make sure to specify a program slot.
+Or, if you only want to test the localization module:
 
-```console
-cargo v5 upload
+```bash
+cargo test test_localization --features host --no-default-features
 ```
 
-### Viewing program output
+---
 
-You can view panic messages and calls to `println!()` using the terminal.
-Use a USB cable to connect to your robot brain or controller, then start the terminal:
+## Core Concepts
 
-```console
-cargo v5 terminal
+### 1. Geometry (SE(2))
+
+All poses and motions are expressed using a small, self-contained SE(2) library:
+
+- `Pose2D` – position + heading
+- `Twist2D` – body-frame velocity / incremental motion (`dx`, `dy`, `dθ`)
+- `Twist2D::exp()` – converts a twist into a rigid transform (the heart of the prediction step)
+- `Transform2D` – rigid body transform
+
+This keeps the math consistent and makes it easy to later add proper Lie-group Jacobians for an EKF.
+
+### 2. Odometry Trait
+
+```rust
+pub trait Odometry: Send + Sync {
+    fn forward_distance(&mut self) -> f64;
+    fn sideways_distance(&mut self) -> f64;
+    fn heading(&mut self) -> f64;
+}
 ```
+
+Any sensor source that can provide these three values can be used. Real dead wheels + IMU, a simulated source, logged data, etc. are all just different implementations of the same trait.
+
+### 3. Robot State & Localization Loop
+
+`RobotState` owns the current pose and the previous sensor readings.
+
+The localization loop (running in the background) continuously:
+
+1. Reads the latest odometry measurements
+2. Computes the SE(2) delta since the last cycle
+3. Applies the delta to the pose with `transform_by`
+
+The pose is protected by a mutex so both the background loop and the rest of the program can access it safely.
+
+### 4. Cross-Platform Clock
+
+A small `Clock` trait + `GlobalClock` alias provides monotonic time on both the brain (`user_uptime`) and the host (`std::time::Instant`). This is used for timestamps, `dt` calculation, and simulated sensors.
+
+### 5. Host-Side Visualization
+
+When running tests on a PC you can collect poses and write a simple SVG:
+
+```rust
+write_trajectory_svg(&poses, "trajectory.svg").unwrap();
+```
+
+Open the file in any browser to see the path, start/end markers, and final heading.
+
+---
+
+## Extending the Template
+
+This project is deliberately minimal so teams can grow it in the direction they need:
+
+| Goal | Suggested next step |
+|------|---------------------|
+| Better dead-reckoning | Add track-width / wheel-diameter calibration |
+| Absolute corrections | Fuse GPS or distance sensors (EKF / PF) |
+| Vision | Add AprilTag / AI Vision measurement models |
+| Logging & replay | Serialize sensor packets + poses for offline analysis |
+| Simulation | Drive the same `Odometry` trait from a physics sim |
+
+Because the odometry source, the state estimator, and the geometry are separated, you can replace or upgrade any piece without touching the others.
+
+---
+
+## Feature Flags
+
+| Feature | Purpose |
+|---------|---------|
+| `vex` | Build for the V5 brain (default) |
+| `host` | Build for PC testing / CI |
+
+Example:
+
+```bash
+cargo test --features host --no-default-features
+```
+
+---
+
+## Philosophy
+
+Most VEX localization code starts simple and then becomes a tangled mess of sensor reads, magic numbers, and blocking loops. This template tries to avoid that by enforcing a few rules from day one:
+
+1. **Pure geometry first** – no hardware types in the math layer.
+2. **Sensors behind a trait** – the rest of the system never knows whether the data is real or fake.
+3. **Background localization** – the control code should only *read* a pose, never block on sensors.
+4. **Host-first development** – if it doesn’t work on the PC with simulated data, it won’t magically work on the field.
+
+The result is a foundation that stays understandable even as the localization system grows more sophisticated.
+
+---
+
+## License
+
+This project is licensed under the MIT License – see the [LICENSE](LICENSE) file for details.
+
+---

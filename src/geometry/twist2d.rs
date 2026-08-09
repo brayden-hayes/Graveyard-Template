@@ -1,8 +1,19 @@
-use super::transform2d::Transform2D;
-use super::rotation2d::Rotation2D;
-use super::translation2d::Translation2D;
+use crate::geometry::{
+    rotation2d::Rotation2D,
+    translation2d::Translation2D,
+    transform2d::Transform2D,
+};
 
-#[derive(Clone, Copy)]
+/// A finite local-frame motion in SE(2).
+///
+/// A Twist2D represents a local displacement (dx, dy) and a rotation
+/// dtheta over a finite interval. It can be converted into a
+/// Transform2D using the SE(2) exponential map.
+///
+/// Unlike a velocity twist, the components are finite increments rather
+/// than rates of change.
+/// 
+#[derive(Debug, Clone, Copy, PartialEq)]
 pub struct Twist2D {
     dx: f64,
     dy: f64,
@@ -10,14 +21,8 @@ pub struct Twist2D {
 }
 
 impl Twist2D {
-    pub fn new(dx: f64, dy: f64, dtheta: f64) -> Self {
-        Self {
-            dx,
-            dy,
-            dtheta,
-        }
-    }
 
+    /// Creates a new Twist2D with the zero values for dx, dy, and dtheta.
     pub fn zero() -> Self {
         Self {
             dx: 0.0,
@@ -26,19 +31,36 @@ impl Twist2D {
         }
     }
 
+    /// Creates a new Twist2D with the given dx, dy, and dtheta values.
+    pub fn new(dx: f64, dy: f64, dtheta: f64) -> Self {
+        Self {
+            dx,
+            dy,
+            dtheta,
+        }
+    }
+
+    /// Getter for the dx component of the twist.
     pub fn dx(&self) -> f64 {
         self.dx
     }
+
+    /// Getter for the dy component of the twist.
     pub fn dy(&self) -> f64 {
         self.dy
     }
+
+    /// Getter for the dtheta component of the twist.
     pub fn dtheta(&self) -> f64 {
         self.dtheta
     }
 
+    /// Converts the twist into a Transform2D using the SE(2) exponential map.
+    /// This is effectively the arc-based odometry motion model.
     pub fn exp(&self) -> Transform2D {
         let rotation = Rotation2D::from_radians(self.dtheta);
 
+        // Prevent division by zero for small angles by assuming a straight-line path.
         if self.dtheta.abs() < 1e-9 {
             Transform2D::new(
                 Translation2D::new(self.dx, self.dy),
@@ -62,6 +84,9 @@ impl Twist2D {
     }
 }
 
+
+
+/// Unit tests for the Twist2D struct and its methods.
 #[cfg(test)]
 mod tests {
     use super::*;

@@ -2,6 +2,7 @@
 name = "Graveyard-Template"
 version = "0.1.0"
 edition = "2024"
+license = "MIT"
 
 [profile.release]
 opt-level = "z"
@@ -17,5 +18,10 @@ compress = true
 [dependencies]
 nalgebra = "0.35.0"
 vexide = { version = "0.8.0", features = ["full", "default-sdk"] }
+
+[features]
+default = ["vex"]
+vex = []          # running on the brain
+host = []         # running on PC for testing / simulation
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
