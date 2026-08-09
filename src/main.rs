@@ -37,7 +37,7 @@ mod test_localization {
         let mut fake_odom = DeltaOdometry::new();
         fake_odom.set_forward_params(50.0, 0.5, 1000);  // Starts at 50". Reads 0.5" every cycle for 1000 ms.
         fake_odom.set_side_params(50.0, 0.01, 100);     // Starts at 50". Reads 0.01" every cycle for 100 ms.
-        fake_odom.set_rot_params(0.0, 0.1, 200);        // Starts at 0.0 deg. Reads 0.1 deg every cycle for 200 ms.
+        fake_odom.set_rot_params(0.0, 0.04, 900);        // Starts at 0.0 deg. Reads 0.1 deg every cycle for 200 ms.
 
         // Crate the robot and begin position tracking.
         let robot = Robot::new(fake_odom);

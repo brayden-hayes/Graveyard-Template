@@ -98,44 +98,22 @@ impl<O: Odometry + 'static> Robot<O> {
         let state = Arc::clone(&self.state);
         let odometry = Arc::clone(&self.odometry);
 
-
-        // The Vexide feature. Runs by default and is used for real hardware.
-        #[cfg(feature = "vex")]
-        {
-            use vexide::prelude::*;
-
-            // Spawns the thread that continually updates odometry.
-            task::spawn(async move {
-                loop {
+        // Spawns a Thread that performs the localization update.
+        // The specific thread type is handled in `thread.rs`.
+        crate::utils::thread::Thread::spawn_async(async move {
+            loop {
+                {
                     // Locks the odometry mutex to allow editing.
                     let mut odom = odometry.lock().unwrap();
                     // Updates the odometry is applicable. Used mainly for fake sensor data.
                     odom.update();
                     // Updates the state with the new odometry data.
                     state.update(&mut *odom);
-                    // 10 ms delay to prevent using all the Brain's resources.
-                    sleep(core::time::Duration::from_millis(10)).await;
                 }
-            }).detach();
-        }
-
-        // The PC feature. Only runs when specified and is used to test without any hardware.
-        #[cfg(feature = "host")]
-        {
-            // Spawns the thread to continually update position.
-            std::thread::spawn(move || {
-                loop {
-                    // Locks the odometry to allow editing.
-                    let mut odom = odometry.lock().unwrap();
-                    // Updates the odometry. Used as a tick update for DeltaOdometry.
-                    odom.update();
-                    // Updates the state with the new odometry readings.
-                    state.update(&mut *odom);
-                    // Short 10 ms delay to prevent using all the computer's resources.
-                    std::thread::sleep(std::time::Duration::from_millis(10));
-                }
-            });
-        }
+                // 10 ms delay to prevent using all the Brain's resources.
+                crate::utils::delay::Delay::delay(10).await;
+            }
+        });
     }
 
 }
