@@ -36,47 +36,11 @@ This template is intentionally designed as a **scalable starting point** for tea
 - [Vexide](https://vexide.dev/) / `cargo-v5` for deploying to a V5 Brain
 - Git
 
-### Option 1 — Use as a template repository
-
-1. On GitHub, open this repository.
-2. Click **Use this template** → **Create a new repository**.
-3. Clone your new repo:
-
-```bash
-git clone https://github.com/YOUR_USER/YOUR_REPO.git
-cd YOUR_REPO
-```
-
-4. Build / run with the steps in [Quick Start](#quick-start).
-
-### Option 2 — Clone a specific release
-
-To get a fixed, stable version (recommended for most teams):
-
-```bash
-git clone https://github.com/YOUR_USER/Graveyard-Template.git
-cd Graveyard-Template
-git checkout v0.1.0
-```
-
-Or download the source zip from the [Releases](https://github.com/YOUR_USER/Graveyard-Template/releases) page.
-
-### Option 3 — Add as a Git dependency in your own project
-
-In your robot project’s `Cargo.toml`:
-
-```toml
-[dependencies]
-graveyard-template = { git = "https://github.com/YOUR_USER/Graveyard-Template.git", tag = "v0.1.0" }
-```
-
-Then run:
-
-```bash
-cargo build
-```
-
-> Replace `YOUR_USER` / `Graveyard-Template` with the actual GitHub path of this repo.
+### Download
+1. Download the ZIP file [here](https://github.com/brayden-hayes/Graveyard-Template/releases)
+2. Navigate to where the folder was downloaded, right click, and press extract all.
+3. Open VSCode, go to File \ Open Folder \  YOUR_FILE_PATH
+4. Read through the comments in the library or the rest of the documentation here.
 
 ---
 
