@@ -2,8 +2,9 @@ use vexide::{prelude::*};
 mod utils;
 mod geometry;
 mod robot;
+mod localization;
 use crate::robot::robot::Robot;
-use crate::robot::odometry::{ConstantOdometry, Odometry};
+use crate::localization::odometry::{constant_odometry::ConstantOdometry, odometry::Odometry, delta_odometry::DeltaOdometry};
 
 #[cfg(feature = "vex")]
 #[vexide::main]
@@ -28,7 +29,7 @@ async fn main(peripherals: Peripherals) {
 #[cfg(test)]
 mod test_localization {
     use crate::robot::robot::Robot;
-    use crate::robot::odometry::{DeltaOdometry, ConstantOdometry};
+    use crate::localization::odometry::{delta_odometry::DeltaOdometry, constant_odometry::ConstantOdometry};
     use super::*;
     #[test]
     fn test_localization() {
@@ -45,7 +46,7 @@ mod test_localization {
 
         // Short delay to prevent a position jump in the svg.
         // Purely for visualization, no real impact.
-        std::thread::sleep(std::time::Duration::from_millis(1));
+        std::thread::sleep(std::time::Duration::from_millis(10));
 
         
 

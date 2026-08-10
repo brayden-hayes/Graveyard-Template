@@ -1,6 +1,6 @@
 use crate::geometry::translation2d::Translation2D;
 use crate::geometry::{pose2d::Pose2D, twist2d::Twist2D, transform2d::Transform2D, rotation2d::Rotation2D};
-use crate::robot::odometry::Odometry;
+use crate::localization::odometry::odometry::Odometry;
 use vexide::prelude::*;
 use std::sync::{Mutex, Arc};
 use vexide::task;

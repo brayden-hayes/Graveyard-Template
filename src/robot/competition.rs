@@ -1,5 +1,5 @@
 use vexide::prelude::*;
-use crate::robot::odometry::Odometry;
+use crate::localization::odometry::odometry::Odometry;
 use crate::robot::robot::Robot;
 
 /// Competition callbacks for autonomous and driver control.
