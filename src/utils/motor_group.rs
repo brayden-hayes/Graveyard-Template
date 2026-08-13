@@ -1,3 +1,5 @@
+use std::vec;
+
 use vexide::prelude::*;
 
 /// Custom implementation of a MotorGroup to allow joint control of several motors.
@@ -19,5 +21,16 @@ impl MotorGroup {
         for motor in &mut self.motors {
             motor.set_voltage(voltage);
         }
+    }
+
+    pub fn get_position_radians(&self) -> f64 {
+        let total_rotation: f64 = self.motors.iter()
+            .map(|motor| motor.position().unwrap().as_radians())
+            .sum();
+        total_rotation / self.motors.len() as f64
+    }
+
+    pub fn reset_position(&mut self) {
+        self.motors.iter_mut().map(|motor| motor.reset_position());
     }
 }

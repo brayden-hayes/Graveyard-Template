@@ -58,4 +58,8 @@ impl Odometry for DeltaOdometry {
     fn heading(&self) -> f64 {
         self.rot.get()
     }
+
+    fn calibrate_heading(&mut self) {
+        
+    }
 }

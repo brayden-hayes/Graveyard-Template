@@ -35,4 +35,8 @@ impl Odometry for ConstantOdometry {
     fn heading(&self) -> f64 {
         self.rot_value
     }
+
+    fn calibrate_heading(&mut self) {
+        
+    }
 }

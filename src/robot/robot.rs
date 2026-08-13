@@ -116,4 +116,8 @@ impl<O: Odometry + 'static> Robot<O> {
         });
     }
 
+    pub fn calibrate_heading_source(&mut self) {
+        self.odometry.lock().unwrap().calibrate_heading();
+    }
+
 }
